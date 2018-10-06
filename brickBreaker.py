@@ -1,5 +1,6 @@
 # Pygame setup
 import pygame
+import random
 pygame.init()
 
 # Game window setup
@@ -9,11 +10,6 @@ game_display = pygame.display.set_mode((game_width, game_height))
 pygame.display.set_caption('Brick Breaker!')
 
 # Variables
-player_x = 0
-player_y = game_height
-player_move_speed = 10
-player_right = False
-player_left = False
 clock = pygame.time.Clock()
 running = True
 fps = 60
@@ -53,6 +49,12 @@ class Player(GameObject):
 class Ball(GameObject):
     def __init__(self, sprite, scale_x, scale_y, x_pos, y_pos):
         GameObject.__init__(self, sprite, scale_x, scale_y, x_pos, y_pos)
+        self.x_speed = random.randint(-5, 5)
+        self.y_speed = random.randint(-5, 5)
+
+    def move(self):
+        self.x += self.x_speed
+        self.y += self.y_speed
 
 # Setup game objects
 player = Player(pygame.image.load('./assets/player.png'), 0.5, 0.1, 0, game_height - 50)
@@ -80,8 +82,9 @@ while running:
                 player.moving_left = False
 
     
-    # Player movement
+    # Object Moving
     player.move()
+    ball.move()
 
     # Draw objects
     game_display.fill(white)
