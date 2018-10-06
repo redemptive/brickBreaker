@@ -10,6 +10,7 @@ game_display = pygame.display.set_mode((game_width, game_height))
 pygame.display.set_caption('Brick Breaker!')
 
 # Variables
+no_bricks = 7
 clock = pygame.time.Clock()
 running = True
 fps = 60
@@ -41,9 +42,9 @@ class Player(GameObject):
         self.speed = 10
 
     def move(self):
-        if self.moving_left:
+        if self.moving_left and self.x > 0:
             self.x -= self.speed
-        if self.moving_right:
+        if self.moving_right and self.x < (game_width - self.sprite.get_size()[0]):
             self.x += self.speed
 
 class Ball(GameObject):
@@ -53,12 +54,30 @@ class Ball(GameObject):
         self.y_speed = random.randint(-5, 5)
 
     def move(self):
-        self.x += self.x_speed
-        self.y += self.y_speed
+        if self.x > 0 and self.x_speed < 0:
+            self.x += self.x_speed
+        elif self.x < (game_width - self.sprite.get_size()[0]) and self.x_speed > 0:
+            self.x += self.x_speed
+        else:
+            self.x_speed = -(self.x_speed)
+
+        if self.y > 0 and self.y_speed < 0:
+            self.y += self.y_speed
+        elif self.y < (game_height - self.sprite.get_size()[1]) and self.y_speed > 0:
+            self.y += self.y_speed
+        else:
+            self.y_speed = -(self.y_speed)
+
+class Brick(GameObject):
+    def __init__(self, sprite, scale_x, scale_y, x_pos, y_pos):
+        GameObject.__init__(self, sprite, scale_x, scale_y, x_pos, y_pos)
 
 # Setup game objects
 player = Player(pygame.image.load('./assets/player.png'), 0.5, 0.1, 0, game_height - 50)
-ball = Ball(pygame.image.load('./assets/ball.png'), 0.1, 0.1, 0, 0)
+ball = Ball(pygame.image.load('./assets/ball.png'), 0.1, 0.1, 100, 100)
+bricks = []
+for i in range(0, no_bricks):
+    bricks.append(Brick(pygame.image.load('./assets/brick.png'), 0.25, 0.1, i * 100, 0))
 
 # Game loop
 while running:
@@ -90,6 +109,8 @@ while running:
     game_display.fill(white)
     player.draw()
     ball.draw()
+    for i in range(0, len(bricks)):
+        bricks[i].draw()
 
     pygame.display.update()
     clock.tick(fps)
