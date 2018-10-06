@@ -127,8 +127,11 @@ while running:
     game_display.fill(white)
     player.update()
     ball.update()
-    for i in range(0, len(bricks)):
-        bricks[i].draw()
+    for brick in bricks:
+        if collission_check(ball, brick):
+            bricks.remove(brick)
+        else:
+            brick.draw()
 
     pygame.display.update()
     clock.tick(fps)
