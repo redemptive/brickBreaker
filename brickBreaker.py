@@ -74,6 +74,16 @@ class Ball(GameObject):
         else:
             self.y_speed = -(self.y_speed)
     
+    def bounce(self):
+        if self.x_speed > 0 and self.y_speed < 0:
+            self.y_speed = -(self.y_speed)
+        elif self.x_speed > 0 and self.y_speed > 0:
+            self.x_speed = -(self.x_speed)
+        elif self.x_speed < 0 and self.y_speed > 0:
+            self.y_speed = -(self.y_speed)
+        elif self.x_speed < 0 and self.y_speed < 0:
+            self.x_speed = -(self.x_speed)
+    
     def update(self):
         self.move()
         self.draw()
@@ -84,9 +94,9 @@ class Brick(GameObject):
 
 def collission_check(GameObject1, GameObject2):
     if (GameObject1.x < GameObject2.x + GameObject2.width and
-   GameObject1.x + GameObject1.width > GameObject2.x and
-   GameObject1.y < GameObject2.y + GameObject2.height and
-   GameObject1.height + GameObject1.y > GameObject2.y):
+    GameObject1.x + GameObject1.width > GameObject2.x and
+    GameObject1.y < GameObject2.y + GameObject2.height and
+    GameObject1.height + GameObject1.y > GameObject2.y):
         return True
     else:
         return False
@@ -120,8 +130,7 @@ while running:
                 player.moving_left = False
 
     if collission_check(player, ball):
-        ball.x_speed = -(ball.x_speed)
-        ball.y_speed = -(ball.y_speed)
+        ball.bounce()
 
     # Draw objects
     game_display.fill(white)
@@ -130,6 +139,7 @@ while running:
     for brick in bricks:
         if collission_check(ball, brick):
             bricks.remove(brick)
+            ball.bounce()
         else:
             brick.draw()
 
