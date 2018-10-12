@@ -56,8 +56,14 @@ class Player(GameObject):
 class Ball(GameObject):
     def __init__(self, sprite, scale_x, scale_y, x_pos, y_pos):
         GameObject.__init__(self, sprite, scale_x, scale_y, x_pos, y_pos)
-        self.x_speed = random.randint(-5, 5)
-        self.y_speed = random.randint(-5, 5)
+        self.base_speed = 5
+        self.x_speed = self.base_speed * random.randint(-1, 1)
+        self.y_speed = self.base_speed * random.randint(-1, 1)
+        while self.x_speed == 0:
+            self.x_speed = self.base_speed * random.randint(-1, 1)
+        while self.y_speed == 0:
+            self.y_speed = self.base_speed * random.randint(-1, 1)
+        self.active = True
 
     def move(self):
         if self.x > 0 and self.x_speed < 0:
@@ -83,6 +89,14 @@ class Ball(GameObject):
             self.y_speed = -(self.y_speed)
         elif self.x_speed < 0 and self.y_speed < 0:
             self.x_speed = -(self.x_speed)
+    
+    def bounce_up_left(self):
+        self.x_speed = -(self.base_speed)
+        self.y_speed = -(self.y_speed)
+    
+    def bounce_up_right(self):
+        self.x_speed = self.base_speed
+        self.y_speed = -(self.y_speed)
     
     def update(self):
         self.move()
@@ -130,7 +144,12 @@ while running:
                 player.moving_left = False
 
     if collission_check(player, ball):
-        ball.bounce()
+        if (ball.x + ball.width) < (player.x + (player.width / 4)):
+            ball.bounce_up_left()
+        if (player.x + player.width - (player.width / 4)) < ball.x:
+            ball.bounce_up_right()
+        else:
+            ball.bounce()
 
     # Draw objects
     game_display.fill(white)
@@ -142,6 +161,10 @@ while running:
             ball.bounce()
         else:
             brick.draw()
+
+    # Check the ball hasn't fallen down the bottom
+    if not ball.active:
+        ball = Ball(pygame.image.load('./assets/ball.png'), 0.1, 0.1, 100, 100)
 
     pygame.display.update()
     clock.tick(fps)
