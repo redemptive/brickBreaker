@@ -10,24 +10,39 @@ game_display = pygame.display.set_mode((game_width, game_height))
 pygame.display.set_caption('Brick Breaker!')
 
 # Variables
-no_bricks = 7
+no_bricks = 13
 clock = pygame.time.Clock()
 running = True
 fps = 60
+lives = 3
 
 # Colours
 black = (0, 0, 0)
 white = (255, 255, 255)
 
-# Functions
-def scale_image(image, scale_x, scale_y):
-    scaled_image = pygame.transform.scale(image, (int(image.get_size()[0] * scale_x), int(image.get_size()[1] * scale_y)))
-    return scaled_image
+class Game:
+    def __init__(self):
+        self.black = (0, 0, 0)
+
+    @staticmethod
+    def collission(GameObject1, GameObject2):
+        if (GameObject1.x < GameObject2.x + GameObject2.width and
+        GameObject1.x + GameObject1.width > GameObject2.x and
+        GameObject1.y < GameObject2.y + GameObject2.height and
+        GameObject1.height + GameObject1.y > GameObject2.y):
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def scale_image(image, width, height):
+        scaled_image = pygame.transform.scale(image, (width, height))
+        return scaled_image
 
 # Game Objects
 class GameObject:
-    def __init__(self, sprite, scale_x, scale_y, x_pos, y_pos):
-        self.sprite = scale_image(sprite, scale_x, scale_y)
+    def __init__(self, sprite, width, height, x_pos, y_pos):
+        self.sprite = Game.scale_image(sprite, width, height)
         self.x = x_pos
         self.y = y_pos
         self.width = self.sprite.get_size()[0]
@@ -77,6 +92,8 @@ class Ball(GameObject):
             self.y += self.y_speed
         elif self.y < (game_height - self.height) and self.y_speed > 0:
             self.y += self.y_speed
+        elif self.y + self.height > game_height:
+            lives -= 1
         else:
             self.y_speed = -(self.y_speed)
     
@@ -106,24 +123,16 @@ class Brick(GameObject):
     def __init__(self, sprite, scale_x, scale_y, x_pos, y_pos):
         GameObject.__init__(self, sprite, scale_x, scale_y, x_pos, y_pos)
 
-def collission_check(GameObject1, GameObject2):
-    if (GameObject1.x < GameObject2.x + GameObject2.width and
-    GameObject1.x + GameObject1.width > GameObject2.x and
-    GameObject1.y < GameObject2.y + GameObject2.height and
-    GameObject1.height + GameObject1.y > GameObject2.y):
-        return True
-    else:
-        return False
-
 # Setup game objects
-player = Player(pygame.image.load('./assets/player.png'), 0.5, 0.1, 0, game_height - 50)
-ball = Ball(pygame.image.load('./assets/ball.png'), 0.1, 0.1, 100, 100)
+game = Game()
+player = Player(pygame.image.load('./assets/player.png'), 100, 20, 0, game_height - 50)
+ball = Ball(pygame.image.load('./assets/ball.png'), 25, 25, 100, 100)
 bricks = []
 for i in range(0, no_bricks):
-    bricks.append(Brick(pygame.image.load('./assets/brick.png'), 0.25, 0.1, i * 100, 0))
+    bricks.append(Brick(pygame.image.load('./assets/brick.png'), 50, 20, i * 60, 0))
 
 # Game loop
-while running:
+while running and lives >= 0:
 
     # Event handlers
     for event in pygame.event.get():
@@ -143,7 +152,7 @@ while running:
             if event.key == pygame.K_LEFT:
                 player.moving_left = False
 
-    if collission_check(player, ball):
+    if Game.collission(player, ball):
         if (ball.x + ball.width) < (player.x + (player.width / 4)):
             ball.bounce_up_left()
         if (player.x + player.width - (player.width / 4)) < ball.x:
@@ -156,7 +165,7 @@ while running:
     player.update()
     ball.update()
     for brick in bricks:
-        if collission_check(ball, brick):
+        if Game.collission(ball, brick):
             bricks.remove(brick)
             ball.bounce()
         else:
@@ -164,7 +173,7 @@ while running:
 
     # Check the ball hasn't fallen down the bottom
     if not ball.active:
-        ball = Ball(pygame.image.load('./assets/ball.png'), 0.1, 0.1, 100, 100)
+        ball = Ball(pygame.image.load('./assets/ball.png'), 25, 25, 100, 100)
 
     pygame.display.update()
     clock.tick(fps)
