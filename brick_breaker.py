@@ -3,26 +3,30 @@ import pygame
 import random
 pygame.init()
 
-# Game window setup
-game_width = 800
-game_height = 600
-game_display = pygame.display.set_mode((game_width, game_height))
-pygame.display.set_caption('Brick Breaker!')
-
 # Variables
-no_bricks = 13
+no_bricks = 100
 clock = pygame.time.Clock()
 running = True
 fps = 60
 lives = 3
+game_width = 1000
+game_height = 600
+brick_width = 50
+brick_height = 20
+
+# Game window setup
+game_display = pygame.display.set_mode((game_width, game_height))
+pygame.display.set_caption('Brick Breaker!')
 
 # Colours
 black = (0, 0, 0)
 white = (255, 255, 255)
 
-class Game:
-    def __init__(self):
+class Game():
+    def __init__(self, width, height):
         self.black = (0, 0, 0)
+        self.width = width
+        self.height = height
 
     @staticmethod
     def collission(GameObject1, GameObject2):
@@ -124,12 +128,18 @@ class Brick(GameObject):
         GameObject.__init__(self, sprite, scale_x, scale_y, x_pos, y_pos)
 
 # Setup game objects
-game = Game()
-player = Player(pygame.image.load('./assets/player.png'), 100, 20, 0, game_height - 50)
-ball = Ball(pygame.image.load('./assets/ball.png'), 25, 25, 100, 100)
+game = Game(game_width, game_height)
+player = Player(pygame.image.load('./assets/player.png'), 100, 20, 0, game_height - 40)
 bricks = []
+row = 0
+
 for i in range(0, no_bricks):
-    bricks.append(Brick(pygame.image.load('./assets/brick.png'), 50, 20, i * 60, 0))
+    if game_width < (i * (brick_width + 10)) - (row * game_width):
+        row += 1
+        
+    bricks.append(Brick(pygame.image.load('./assets/brick.png'), brick_width, brick_height, (i * (brick_width + 10)) - (row * game_width), row * (brick_height + 10)))
+
+ball = Ball(pygame.image.load('./assets/ball.png'), 25, 25, 100, 400)
 
 # Game loop
 while running and lives >= 0:
