@@ -6,7 +6,6 @@ pygame.init()
 # Variables
 no_bricks = 100
 clock = pygame.time.Clock()
-running = True
 fps = 60
 lives = 3
 game_width = 1000
@@ -14,19 +13,37 @@ game_height = 600
 brick_width = 50
 brick_height = 20
 
-# Game window setup
-game_display = pygame.display.set_mode((game_width, game_height))
-pygame.display.set_caption('Brick Breaker!')
-
 # Colours
 black = (0, 0, 0)
 white = (255, 255, 255)
 
 class Game():
     def __init__(self, width, height):
-        self.black = (0, 0, 0)
         self.width = width
         self.height = height
+        self.display = pygame.display.set_mode((game_width, game_height))
+        pygame.display.set_caption('Brick Breaker!')
+        self.running = True
+
+    def check_events(self):
+        # Event handlers
+        for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                self.running = False
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    player.moving_right = True
+                if event.key == pygame.K_LEFT:
+                    player.moving_left = True
+            
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    player.moving_right = False
+                if event.key == pygame.K_LEFT:
+                    player.moving_left = False
+
 
     @staticmethod
     def collission(GameObject1, GameObject2):
@@ -39,21 +56,20 @@ class Game():
             return False
 
     @staticmethod
-    def scale_image(image, width, height):
+    def resize_image(image, width, height):
         scaled_image = pygame.transform.scale(image, (width, height))
         return scaled_image
 
-# Game Objects
 class GameObject:
-    def __init__(self, sprite, width, height, x_pos, y_pos):
-        self.sprite = Game.scale_image(sprite, width, height)
+    def __init__(self, sprite_path, width, height, x_pos, y_pos):
+        self.sprite = Game.resize_image(pygame.image.load(sprite_path), width, height)
         self.x = x_pos
         self.y = y_pos
         self.width = self.sprite.get_size()[0]
         self.height = self.sprite.get_size()[1]
 
     def draw(self):
-        game_display.blit(self.sprite, (self.x, self.y))
+        game.display.blit(self.sprite, (self.x, self.y))
 
 class Player(GameObject):
     def __init__(self, sprite, scale_x, scale_y, x_pos, y_pos):
@@ -128,8 +144,7 @@ class Brick(GameObject):
         GameObject.__init__(self, sprite, scale_x, scale_y, x_pos, y_pos)
 
 # Setup game objects
-game = Game(game_width, game_height)
-player = Player(pygame.image.load('./assets/player.png'), 100, 20, 0, game_height - 40)
+player = Player('./assets/player.png', 100, 20, 0, game_height - 40)
 bricks = []
 row = 0
 
@@ -137,30 +152,13 @@ for i in range(0, no_bricks):
     if game_width < (i * (brick_width + 10)) - (row * game_width):
         row += 1
         
-    bricks.append(Brick(pygame.image.load('./assets/brick.png'), brick_width, brick_height, (i * (brick_width + 10)) - (row * game_width), row * (brick_height + 10)))
+    bricks.append(Brick('./assets/brick.png', brick_width, brick_height, (i * (brick_width + 10)) - (row * game_width), row * (brick_height + 10)))
 
-ball = Ball(pygame.image.load('./assets/ball.png'), 25, 25, 100, 400)
+ball = Ball('./assets/ball.png', 25, 25, 100, 400)
+game = Game(game_width, game_height)
 
 # Game loop
-while running and lives >= 0:
-
-    # Event handlers
-    for event in pygame.event.get():
-
-        if event.type == pygame.QUIT:
-            running = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                player.moving_right = True
-            if event.key == pygame.K_LEFT:
-                player.moving_left = True
-        
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT:
-                player.moving_right = False
-            if event.key == pygame.K_LEFT:
-                player.moving_left = False
+while game.running and lives >= 0:
 
     if Game.collission(player, ball):
         if (ball.x + ball.width) < (player.x + (player.width / 4)):
@@ -170,8 +168,10 @@ while running and lives >= 0:
         else:
             ball.bounce()
 
+    game.check_events()
+
     # Draw objects
-    game_display.fill(white)
+    game.display.fill(white)
     player.update()
     ball.update()
     for brick in bricks:
@@ -183,7 +183,7 @@ while running and lives >= 0:
 
     # Check the ball hasn't fallen down the bottom
     if not ball.active:
-        ball = Ball(pygame.image.load('./assets/ball.png'), 25, 25, 100, 100)
+        ball = Ball('./assets/ball.png', 25, 25, 100, 100)
 
     pygame.display.update()
     clock.tick(fps)
